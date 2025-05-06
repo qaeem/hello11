@@ -93,8 +93,3 @@ app.post('/processOTP', async (req, res) => {
     return res.status(500).send('Failed to send OTP to Telegram');
   }
 });
-
-// 8) Start server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
